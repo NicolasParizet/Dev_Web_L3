@@ -1,0 +1,29 @@
+nav {
+    margin-bottom: 1rem;
+}
+
+div#motsmeles {
+    font-family: "Courier New", monospace;
+}
+
+div#motsmeles > div > span {
+    display: inline-block;
+    padding: 0.5rem;
+    border: black thin solid;
+    width: 1rem;
+    height: 1rem;
+    text-align: center;
+
+}
+
+div#motsmeles > div > span:nth-child(n+2) {
+    border-left-style: none;
+}
+
+div#motsmeles > div:nth-child(n+2) > span {
+    border-top-style: none;
+}
+
+div#motsmeles > div > span.selected {
+    background: yellow;
+}

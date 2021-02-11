@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <title>mots mélés ou presque</title>
+
+    <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+
+    <script type="text/javascript" src="PAC/Grille.js"></script>
+    <script type="text/javascript" src="PAC/Grille.js"></script>
+    <script type="text/javascript">
+
+        const grilleInitiale=`ABDOMINALE
+                              ACTUALITES
+                              ADAPTABLES
+                              ADOLESCENT
+                              ADRENALINE
+                              ABSOLUTION
+                              ACCOMMODER
+                              ACCROCHEUR
+                              ACTIVISTES
+                              ACTUALITES`;
+
+        window.addEventListener("DOMContentLoaded", () => {
+            let grilles = grilleInitiale.split("\n").map(s => s.trim()).join("");
+            let lettres = [];
+            for (let i = 0; i < grilles.length; i++) {
+                lettres.push(grilles.charAt(i).toUpperCase());
+            }
+
+            let abs = new AbsGrille();
+            let pres = new PresGrille();
+            let ctrl = new CtrlGrille(abs, pres);
+
+            abs.setLettres(lettres);
+
+        });
+
+
+    </script>
+
+
+</head>
+<body>
+
+
+</body>
+</html>

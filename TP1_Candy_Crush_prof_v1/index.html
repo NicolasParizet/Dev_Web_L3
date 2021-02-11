@@ -1,0 +1,33 @@
+<html lang="fr">
+    <head>
+        <title>Mini jeu vidéo HTML5</title>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="css/styles.css">
+        <script src="js/script.js"></script>
+        <script src="js/player.js"></script>
+        <script src="js/ecouteurs.js"></script>
+        <script src="js/rectangle.js"></script>
+        <script src="js/collisions.js"></script>
+        <script src="lib/lodash.js"></script>
+        
+    </head>
+    <body>
+        <H1>Ici un petit exemple de jeu animé dans un canvas HTML5</H1>
+       <br>
+       <canvas id="myCanvas" width=600 height=600></canvas>
+       <p>
+           <label>
+               Vitesse des rectangles : 
+               1 <input type="range" min=1 max=100 value=3 oninput="changerVitesse(this.value)"> 100
+           </label>
+           vitesse = <span id="vitesse">1</span>
+       </p>
+       <p>
+        <label>
+            Couleur des rectangles : 
+            <input type="color" oninput="changerCouleur(this.value)"> 
+        </label>
+        vitesse = <span id="vitesse">1</span>
+    </p>
+    </body>
+</html>

@@ -1,0 +1,272 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>mots mélés ou presque</title>
+
+	<script type="text/javascript">
+let selection = [];	
+let TAILLE = 20;
+let NORD = 0;
+let NORDEST = 1;
+let EST = 2;
+let SUDEST = 3;
+let SUD = 4;
+let SUDOUEST = 5;
+let OUEST = 6;
+let NORDOUEST = 7;
+
+let DIRECTIONS = [NORD, NORDEST, EST, SUDEST, SUD, SUDOUEST, OUEST, NORDOUEST];
+	
+class Case {
+	 constructor(span, indice) {
+		this.lettre = span;
+		if (indice) this.indice = indice;
+		else {
+			let lettres = document.querySelectorAll("div#motsmeles span");
+			for(let i = 0; i < lettres.length; i++) {
+				if (lettres.item(i) == span) {
+					this.indice = i;
+					break;
+				}
+			}
+		}
+		this.suivant = null;
+		this.direction = -1;
+		this.dernier = null;
+		this.premier = null;
+	 }
+	 
+	 selectionner() {
+		this.lettre.className = "selected";
+		if (this.suivant) this.suivant.selectionner();
+	 }
+	 
+	 deselectionner() {
+		this.lettre.className = "";
+		if (this.suivant) this.suivant.deselectionner();
+	 }
+	 	 
+	 ajouterSuivant(suivant, direction) {
+		this.suivant = suivant;
+		suivant.direction = direction;
+		this.direction = direction;
+		
+		if (this.premier) this.suivant.premier = this.premier;
+		else this.suivant.premier = this;
+		
+		if (this.dernier == null) this.dernier = suivant;
+		if (this.premier != null) this.premier.dernier = suivant;
+	 }
+	 
+	 
+	 verifierSuivant(lettre) {
+		return this.verifierSuivantPotentiel(this.direction, lettre);
+	 }
+	 
+	 verifierSuivantPotentiel(direction, lettre) {
+		let indicePotentiel = this.indice;
+		let modulo = indicePotentiel % TAILLE;
+		let division = Math.floor(indicePotentiel / TAILLE);
+		switch(direction) {
+			case NORD:
+				if (division > 0) indicePotentiel = indicePotentiel-TAILLE;
+				else indicePotentiel = -1;
+				break;
+			case NORDEST:
+				if ((division > 0) && (modulo < (TAILLE-1)))
+					{
+					indicePotentiel = indicePotentiel-TAILLE+1;
+					}
+				else indicePotentiel = -1;
+				break;
+			case EST:
+				if  (modulo < (TAILLE-1))
+					{
+					indicePotentiel = indicePotentiel+1;
+					}
+				else indicePotentiel = -1;
+				break;
+			case SUDEST:
+				if  ((modulo < (TAILLE-1)) && (division < (TAILLE-1)))
+					{
+					indicePotentiel = indicePotentiel+TAILLE+1;
+					}
+				else indicePotentiel = -1;
+				break;
+			case SUD:
+				if  (division < (TAILLE-1))
+					{
+					indicePotentiel = indicePotentiel+TAILLE;
+					}
+				else indicePotentiel = -1;
+				break;
+			case SUDOUEST:
+				if  ((division < (TAILLE-1)) && (modulo > 0))
+					{
+					indicePotentiel = indicePotentiel+TAILLE-1;
+					}
+				else indicePotentiel = -1;
+				break;
+			case OUEST:
+				if  (modulo > 0)
+					{
+					indicePotentiel = indicePotentiel-1;
+					}
+				else indicePotentiel = -1;
+				break;
+			case NORDOUEST:
+				if  ((modulo > 0) && (division >0)) 
+					{
+					indicePotentiel = indicePotentiel-TAILLE-1;
+					}
+				else indicePotentiel = -1;
+				break;
+			default:
+				indicePotentiel = -1;
+				break;	
+		}
+		
+		let résultat = null;
+		
+		if (indicePotentiel >= 0) {
+			let nbDiv = Math.floor(indicePotentiel / TAILLE)+1;
+			let nbSpan = (indicePotentiel % TAILLE)+1;
+			let spanCase = document.querySelector("div#motsmeles div:nth-child("+nbDiv+") span:nth-child("+nbSpan+")");
+			if (spanCase.textContent == lettre) résultat = spanCase;
+		}
+		
+		return résultat;
+	 }
+	 
+}
+
+function miseenvaleur(input) {
+		let mot = input.value.toUpperCase();
+		if (selection) selection.forEach(function(c) { c.deselectionner();});
+		selection = [];
+		
+		
+		// modifiable, en vérifiant la direction (présente oui, on la suit) (présente non, on ne la suit pas)
+		// et en ayant deux listes : les candidats (en entrée de boucle) puis les retenus (en sortie)
+		
+		if (mot.length > 0) {
+			let caractere = mot.charAt(0);
+			let lettres = document.querySelectorAll("div#motsmeles span[title="+caractere+"]");
+			
+			for(let i = 0; i < lettres.length; i++) {
+				let c = new Case(lettres.item(i));
+				let motcourant = mot.substring(1);
+				
+				if (motcourant.length > 0) {
+					for(let d = 0; d < DIRECTIONS.length; d++) {
+						let s = c.verifierSuivantPotentiel(DIRECTIONS[d], motcourant.charAt(0));
+						if (s) {
+							let cd = new Case(lettres.item(i)); 
+							let cs = new Case(s);
+							cd.ajouterSuivant(cs, DIRECTIONS[d]);
+							
+							let m = motcourant.substring(1);
+							let ajouter = true;
+							while (m.length > 0) {
+								let next = cs.verifierSuivant(m.charAt(0));
+								if (next) {
+									let c = new Case(next);
+									cs.ajouterSuivant(c, DIRECTIONS[d]);
+									cs = c;
+									m = m.substring(1);
+									}
+								else {
+									ajouter = false;
+									break;
+									}
+								}
+							
+							if (ajouter) selection.push(cd);
+							}
+						}
+					
+					}
+				else {
+					selection.push(c);
+					}
+				}
+			}
+		
+		selection.forEach(function(c) { c.selectionner();});
+		}
+	
+	
+
+	</script>
+	
+	<style type="text/css">
+
+	nav {
+	margin-bottom:1rem;
+	}
+	
+div#motsmeles {
+	font-family: "Courier New", monospace;
+}	
+
+div#motsmeles > div > span {
+	display: inline-block;
+	padding: 0.5rem;
+	border: black thin solid;
+	width: 1rem;
+	height: 1rem;
+	text-align:center;
+	
+}
+
+div#motsmeles > div > span:nth-child(n+2) {
+	border-left-style: none;
+}
+div#motsmeles > div:nth-child(n+2) > span {
+	border-top-style: none;
+}
+
+div#motsmeles > div > span.selected {
+	background: yellow;
+}
+	</style>
+</head>
+<body>
+
+<nav>
+	<input id="mot" onkeyup="miseenvaleur(this)" />
+</nav>
+
+<div id="motsmeles">
+<div><span title="M">M</span><span title="F">F</span><span title="M">M</span><span title="S">S</span><span title="D">D</span><span title="W">W</span><span title="R">R</span><span title="R">R</span><span title="B">B</span><span title="G">G</span><span title="Q">Q</span><span title="I">I</span><span title="R">R</span><span title="A">A</span><span title="O">O</span><span title="W">X</span><span title="Z">Z</span><span title="O">O</span><span title="I">I</span><span title="E">E</span></div>
+<div><span title="G">G</span><span title="Z">Z</span><span title="N">N</span><span title="L">L</span><span title="X">X</span><span title="s">S</span><span title="C">C</span><span title="D">D</span><span title="A">A</span><span title="B">B</span><span title="L">L</span><span title="I">I</span><span title="U">U</span><span title="G">G</span><span title="A">A</span><span title="R">R</span><span title="K">K</span><span title="X">X</span><span title="A">A</span><span title="Q">Q</span></div>
+<div><span title="O">O</span><span title="Y">Y</span><span title="Q">Q</span><span title="E">E</span><span title="Ç">Ç</span><span title="Ç">Ç</span><span title="Q">Q</span><span title="Z">Z</span><span title="O">O</span><span title="N">N</span><span title="I">I</span><span title="R">R</span><span title="G">G</span><span title="J">J</span><span title="N">N</span><span title="C">C</span><span title="T">T</span><span title="Z">Z</span><span title="O">O</span><span title="U">U</span></div>
+<div><span title="Y">Y</span><span title="Z">Z</span><span title="Z">Z</span><span title="U">U</span><span title="W">W</span><span title="D">D</span><span title="J">J</span><span title="Q">Q</span><span title="I">I</span><span title="R">R</span><span title="W">W</span><span title="B">B</span><span title="F">F</span><span title="O">O</span><span title="Z">Z</span><span title="Y">Y</span><span title="D">D</span><span title="R">R</span><span title="S">S</span><span title="A">A</span></div>
+<div><span title="Q">Q</span><span title="R">R</span><span title="K">K</span><span title="P">P</span><span title="P">P</span><span title="O">O</span><span title="K">K</span><span title="N">N</span><span title="R">R</span><span title="O">O</span><span title="L">L</span><span title="N">N</span><span title="Y">Y</span><span title="M">M</span><span title="T">T</span><span title="T">T</span><span title="K">K</span><span title="Y">Y</span><span title="R">R</span><span title="Z">Z</span></div>
+<div><span title="Z">Z</span><span title="E">E</span><span title="R">R</span><span title="K">K</span><span title="U">U</span><span title="I">I</span><span title="W">W</span><span title="R">R</span><span title="Ç">Ç</span><span title="A">A</span><span title="X">X</span><span title="D">D</span><span title="K">K</span><span title="K">K</span><span title="E">E</span><span title="G">G</span><span title="L">L</span><span title="B">B</span><span title="T">T</span><span title="F">F</span></div>
+<div><span title="R">R</span><span title="K">K</span><span title="U">U</span><span title="S">S</span><span title="A">A</span><span title="I">I</span><span title="R">R</span><span title="N">N</span><span title="S">S</span><span title="E">E</span><span title="U">U</span><span title="L">L</span><span title="J">J</span><span title="P">P</span><span title="Q">Q</span><span title="Z">Z</span><span title="M">M</span><span title="V">V</span><span title="D">D</span><span title="K">K</span></div>
+<div><span title="Z">Z</span><span title="R">R</span><span title="E">E</span><span title="R">R</span><span title="A">A</span><span title="T">T</span><span title="I">I</span><span title="U">U</span><span title="G">G</span><span title="L">L</span><span title="X">X</span><span title="A">A</span><span title="U">U</span><span title="A">A</span><span title="V">V</span><span title="A">A</span><span title="D">D</span><span title="L">L</span><span title="Y">Y</span><span title="L">L</span></div>
+<div><span title="P">P</span><span title="L">L</span><span title="N">N</span><span title="O">O</span><span title="J">J</span><span title="K">K</span><span title="J">J</span><span title="L">L</span><span title="Ç">Ç</span><span title="J">J</span><span title="O">O</span><span title="N">N</span><span title="A">A</span><span title="T">T</span><span title="H">H</span><span title="A">A</span><span title="N">N</span><span title="B">B</span><span title="Z">Z</span><span title="Ç">Ç</span></div>
+<div><span title="Z">Z</span><span title="N">N</span><span title="C">C</span><span title="P">P</span><span title="T">T</span><span title="N">N</span><span title="Q">Q</span><span title="Ç">Ç</span><span title="I">I</span><span title="J">J</span><span title="W">W</span><span title="C">C</span><span title="H">H</span><span title="L">L</span><span title="I">I</span><span title="U">U</span><span title="S">S</span><span title="L">L</span><span title="K">K</span><span title="X">X</span></div>
+<div><span title="X">X</span><span title="B">B</span><span title="W">W</span><span title="G">G</span><span title="N">N</span><span title="I">I</span><span title="L">L</span><span title="L">L</span><span title="D">D</span><span title="Z">Z</span><span title="R">R</span><span title="E">E</span><span title="A">A</span><span title="U">U</span><span title="M">M</span><span title="L">L</span><span title="A">A</span><span title="Z">Z</span><span title="H">H</span><span title="J">J</span></div>
+<div><span title="F">F</span><span title="O">O</span><span title="X">X</span><span title="G">G</span><span title="O">O</span><span title="C">C</span><span title="G">G</span><span title="F">F</span><span title="Ç">Ç</span><span title="C">C</span><span title="X">X</span><span title="L">L</span><span title="Y">Y</span><span title="L">L</span><span title="V">V</span><span title="B">B</span><span title="O">O</span><span title="J">J</span><span title="Q">Q</span><span title="C">C</span></div>
+<div><span title="D">D</span><span title="Y">Y</span><span title="E">E</span><span title="L">L</span><span title="F">F</span><span title="E">E</span><span title="F">F</span><span title="L">L</span><span title="F">F</span><span title="C">C</span><span title="J">J</span><span title="O">O</span><span title="G">G</span><span title="Q">Q</span><span title="P">P</span><span title="Ç">Ç</span><span title="U">U</span><span title="L">L</span><span title="U">U</span><span title="U">U</span></div>
+<div><span title="V">V</span><span title="M">M</span><span title="B">B</span><span title="O">O</span><span title="B">B</span><span title="P">P</span><span title="T">T</span><span title="I">I</span><span title="Ç">Ç</span><span title="A">A</span><span title="G">G</span><span title="T">T</span><span title="Z">Z</span><span title="R">R</span><span title="S">S</span><span title="I">I</span><span title="U">U</span><span title="C">C</span><span title="P">P</span><span title="S">S</span></div>
+<div><span title="W">W</span><span title="R">R</span><span title="H">H</span><span title="G">G</span><span title="X">X</span><span title="O">O</span><span title="T">T</span><span title="F">F</span><span title="V">V</span><span title="F">F</span><span title="A">A</span><span title="X">X</span><span title="F">F</span><span title="Ç">Ç</span><span title="Ç">Ç</span><span title="O">O</span><span title="Y">Y</span><span title="F">F</span><span title="R">R</span><span title="S">S</span></div>
+<div><span title="N">N</span><span title="M">M</span><span title="M">M</span><span title="S">S</span><span title="F">F</span><span title="X">X</span><span title="A">A</span><span title="K">K</span><span title="D">D</span><span title="S">S</span><span title="C">C</span><span title="P">P</span><span title="Y">Y</span><span title="G">G</span><span title="X">X</span><span title="M">M</span><span title="W">W</span><span title="I">I</span><span title="E">E</span><span title="J">J</span></div>
+<div><span title="Ç">Ç</span><span title="O">O</span><span title="A">A</span><span title="J">J</span><span title="O">O</span><span title="C">C</span><span title="P">P</span><span title="W">W</span><span title="L">L</span><span title="B">B</span><span title="F">F</span><span title="B">B</span><span title="R">R</span><span title="Z">Z</span><span title="V">V</span><span title="O">O</span><span title="T">T</span><span title="S">S</span><span title="N">N</span><span title="F">F</span></div>
+<div><span title="L">L</span><span title="J">J</span><span title="F">F</span><span title="H">H</span><span title="B">B</span><span title="I">I</span><span title="N">N</span><span title="N">N</span><span title="Y">Y</span><span title="Y">Y</span><span title="X">X</span><span title="Ç">Ç</span><span title="V">V</span><span title="G">G</span><span title="I">I</span><span title="W">W</span><span title="X">X</span><span title="A">A</span><span title="A">A</span><span title="O">O</span></div>
+<div><span title="S">S</span><span title="J">J</span><span title="G">G</span><span title="P">P</span><span title="S">S</span><span title="Z">Z</span><span title="H">H</span><span title="M">M</span><span title="E">E</span><span title="G">G</span><span title="Z">Z</span><span title="Z">Z</span><span title="X">X</span><span title="R">R</span><span title="I">I</span><span title="I">I</span><span title="U">U</span><span title="K">K</span><span title="Z">Z</span><span title="Ç">Ç</span></div>
+<div><span title="A">A</span><span title="R">R</span><span title="A">A</span><span title="B">B</span><span title="S">S</span><span title="Y">Y</span><span title="M">M</span><span title="X">X</span><span title="O">O</span><span title="I">I</span><span title="P">P</span><span title="R">R</span><span title="O">O</span><span title="C">C</span><span title="S">S</span><span title="B">B</span><span title="B">B</span><span title="C">C</span><span title="X">X</span><span title="J">J</span></div>
+</div>
+
+<ul>
+	<li>ALHAMBRA</li>
+	<li>LANCELOT</li>
+	<li>JONATHAN</li>
+	<li>GUITARE</li>
+	
+</ul>
+</body>
+</html>
