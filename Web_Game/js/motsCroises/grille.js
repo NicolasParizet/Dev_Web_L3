@@ -2,11 +2,16 @@ class Grille {
   ligne;
   colonne;
   separator = [];
+  tableauRep = [];
+  legend = [];
+  ligneValide = 0;
 
-  constructor(l, c, sep) {
+  constructor(l, c, sep, rep, leg) {
     this.ligne = l;
     this.colonne = c;
     this.separator = sep;
+    this.tableauRep = rep;
+    this.legend = leg;
   }
 
   /**
@@ -66,10 +71,12 @@ class Grille {
     let cases = document.getElementsByClassName("case");
     for (let i = 0; i < cases.length; i++) {
       cases[i].addEventListener("keypress", (e) => {
-        console.log("event : "+ e.key);
         let selected = Math.ceil(i + 1 / this.colonne);
         let line = Math.ceil(selected / this.colonne);
         let column = selected + this.colonne - this.colonne * line;
+        console.log(
+          "event : " + e.key + ",position = l : " + line + " c :" + column
+        );
 
         switch (e.key) {
           case "ArrowUp":
@@ -91,11 +98,70 @@ class Grille {
             ) {
               cases[i].children[0].value = e.key;
             }
+            //CONTROLE PAR LETTRE SUR LE TABLEAU REPLI DE LETTRES
+            /*
+            if (e.key === this.tableauRep[column - 1]) {
+              console.log("change couleur : vrai");
+              cases[i].children[0].style.backgroundColor = "green";
+            } else {
+              console.log("change couleur faux ");
+              cases[i].children[0].style.backgroundColor = "red";
+            }*/
+
+            // CONTROLE PAR LETTRE TABLEAU REMPLI DE MOTS
+            /*if (e.key === this.tableauRep[line - 1].charAt(column - 1)) {
+              console.log("change couleur : vrai");
+              cases[i].children[0].style.backgroundColor = "green";
+            } else {
+              console.log("change couleur faux ");
+              cases[i].children[0].style.backgroundColor = "red";
+            }*/
+
+            //VERIFICATION HORIZONTAL PAR MOT
+            //vérifier que la ligne est pleine
+            let test = 0;
+            this.ligneValide = 0;
+            for (let n = 0; n < this.colonne; n++) {
+              if (cases[n].children[0].value !== "") {
+                test++;
+                console.log("test :" + test);
+                //La ligne est remplie => vérification du/des mot(s)
+                if (test === 8) {
+                  for (let j = 0; j < this.colonne; j++) {
+                    if (
+                      cases[j].children[0].value ===
+                      this.tableauRep[line - 1].charAt(j)
+                    ) {
+                      //this.tableauRep[line - 1].charAt(column - 1)
+                      console.log(
+                        "value case : " +
+                          cases[j].children[0].value +
+                          " , value de tableau réponse : " +
+                          this.tableauRep[line - 1].charAt(j)
+                      );
+                      this.ligneValide++;
+                      console.log(
+                        "Nb lettre ligne valide :" + this.ligneValide
+                      );
+                    }
+                    if (this.ligneValide === 7) {
+                      for (let j = 0; j < this.colonne; j++) {
+                        if (cases[j].children[0].value !== null) {
+                          console.log("change couleur : vrai");
+                          cases[j].children[0].style.backgroundColor = "green";
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
             return;
         }
 
         let cl = line + "x" + column;
-        console.log("cl+"+cl);
+        console.log("cl+" + cl);
         let next = document.getElementsByClassName(cl);
         if (next.length) {
           next[0].children[0].focus();
@@ -103,46 +169,18 @@ class Grille {
       });
     }
 
+    /* else {
+                for (let j = 0; j < this.colonne; j++) {
+                  console.log("change couleur faux ");
+                  cases[i].children[0].style.backgroundColor = "red";
+                }*/
+
     // prevent resizing
     document.body.style.minWidth = 50 * (this.colonne + 1) + 100 + "px";
     document.body.style.minHeight = 50 * (this.ligne + 1) + 100 + "px";
   }
 
-  writeLegend(def){
-    document.getElementById("definition").innerHTML = def; 
+  writeLegend(def) {
+    document.getElementById("definition").innerHTML = def;
   }
 }
-
-  
-
-const romanMatrix = [
-  [1000, "M"],
-  [900, "CM"],
-  [500, "D"],
-  [400, "CD"],
-  [100, "C"],
-  [90, "XC"],
-  [50, "L"],
-  [40, "XL"],
-  [10, "X"],
-  [9, "IX"],
-  [5, "V"],
-  [4, "IV"],
-  [1, "I"]
-];
-const convertToRoman = (num) => {
-  if (num === 0) {
-    return "";
-  }
-  for (let i = 0; i < romanMatrix.length; i++) {
-    if (num >= romanMatrix[i][0]) {
-      return romanMatrix[i][1] + convertToRoman(num - romanMatrix[i][0]);
-    }
-  }
-};
-const reset = () => {
-  let inputs = document.getElementsByTagName("input");
-  for (let i = 0; i < inputs.length; i++) {
-    inputs[i].value = "";
-  }
-};

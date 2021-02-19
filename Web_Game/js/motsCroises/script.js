@@ -10,6 +10,7 @@ function init() {
   let ligne = 12;
   let colonne = 8;
   let separator = [
+    "1x5",
     "4x1",
     "4x7",
     "5x3",
@@ -23,8 +24,10 @@ function init() {
     "12x4"
   ];
 
-  let definition = "test definition";
-  grille = new Grille(ligne, colonne, separator);
+  let legend = ["definition1", "def2", "def3", "...."];
+  //let rep = ["a", "b", "c"];
+  let rep = ["aero-bee", "testeree"];
+  grille = new Grille(ligne, colonne, separator, rep, legend);
   grille.makeGrille();
   //grille.writeLegend(definition);
 }
