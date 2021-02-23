@@ -1,14 +1,14 @@
 class Grille {
-  ligne;
-  colonne;
+  nbLigne;
+  nbColonne;
   separator = [];
   tableauRep = [];
   legend = [];
-  ligneValide = 0;
+  nbCaseValide = 0;
 
   constructor(l, c, sep, rep, leg) {
-    this.ligne = l;
-    this.colonne = c;
+    this.nbLigne = l;
+    this.nbColonne = c;
     this.separator = sep;
     this.tableauRep = rep;
     this.legend = leg;
@@ -23,9 +23,9 @@ class Grille {
       '<div class="legendPlaceholder"</div>';
 
     // loop line by line
-    for (let i = 0; i <= this.ligne; i++) {
+    for (let i = 0; i <= this.nbLigne; i++) {
       // loop column by column
-      for (let j = 0; j <= this.colonne; j++) {
+      for (let j = 0; j <= this.nbColonne; j++) {
         // line legend
         if (j === 0) {
           if (i) {
@@ -71,12 +71,10 @@ class Grille {
     let cases = document.getElementsByClassName("case");
     for (let i = 0; i < cases.length; i++) {
       cases[i].addEventListener("keypress", (e) => {
-        let selected = Math.ceil(i + 1 / this.colonne);
-        let line = Math.ceil(selected / this.colonne);
-        let column = selected + this.colonne - this.colonne * line;
-        console.log(
-          "event : " + e.key + ",position = l : " + line + " c :" + column
-        );
+        let selected = Math.ceil(i + 1 / this.nbColonne);
+        let line = Math.ceil(selected / this.nbColonne);
+        let column = selected + this.nbColonne - this.nbColonne * line;
+        console.log("event : " + e.key + ",position = l : " + line + " c :" + column);
 
         switch (e.key) {
           case "ArrowUp":
@@ -98,7 +96,7 @@ class Grille {
             ) {
               cases[i].children[0].value = e.key;
             }
-            //CONTROLE PAR LETTRE SUR LE TABLEAU REPLI DE LETTRES
+            //CONTROLE PAR LETTRE AVEC TABLEAU REMPLI DE LETTRES
             /*
             if (e.key === this.tableauRep[column - 1]) {
               console.log("change couleur : vrai");
@@ -108,55 +106,81 @@ class Grille {
               cases[i].children[0].style.backgroundColor = "red";
             }*/
 
-            // CONTROLE PAR LETTRE TABLEAU REMPLI DE MOTS
-            /*if (e.key === this.tableauRep[line - 1].charAt(column - 1)) {
+            // CONTROLE PAR LETTRE AVEC TABLEAU REMPLI DE MOTS
+            /*
+            if (e.key === this.tableauRep[line - 1].charAt(column - 1)) {
               console.log("change couleur : vrai");
               cases[i].children[0].style.backgroundColor = "green";
             } else {
               console.log("change couleur faux ");
               cases[i].children[0].style.backgroundColor = "red";
-            }*/
+            }
+            */
 
-            //VERIFICATION HORIZONTAL PAR MOT
+            //VERIFICATION HORIZONTALE PAR MOT
             //vérifier que la ligne est pleine
-            let test = 0;
-            this.ligneValide = 0;
-            for (let n = 0; n < this.colonne; n++) {
-              if (cases[n].children[0].value !== "") {
-                test++;
-                console.log("test :" + test);
+            let nbCaseRempliesHorizontale = 0;
+            this.nbCaseValide = 0;
+            for (let n = 0; n < this.nbColonne; n++) {
+              //console.log("ligne " + (line - 1) + " colonne : " + n);
+              //console.log("case " + (((line - 1) * this.nbColonne) + n));
+              if (cases[(((line - 1) * this.nbColonne) + n)].children[0].value !== "") {
+                nbCaseRempliesHorizontale++;
+                console.log("Nb cases remplies :" + nbCaseRempliesHorizontale);
                 //La ligne est remplie => vérification du/des mot(s)
-                if (test === 8) {
-                  for (let j = 0; j < this.colonne; j++) {
-                    if (
-                      cases[j].children[0].value ===
-                      this.tableauRep[line - 1].charAt(j)
-                    ) {
-                      //this.tableauRep[line - 1].charAt(column - 1)
-                      console.log(
-                        "value case : " +
-                          cases[j].children[0].value +
-                          " , value de tableau réponse : " +
-                          this.tableauRep[line - 1].charAt(j)
-                      );
-                      this.ligneValide++;
-                      console.log(
-                        "Nb lettre ligne valide :" + this.ligneValide
-                      );
+                if (nbCaseRempliesHorizontale === this.nbColonne) {
+                  for (let j = 0; j < this.nbColonne; j++) {
+                    if (cases[(((line - 1) * this.nbColonne) + j)].children[0].value === this.tableauRep[line - 1].charAt(j)) {
+                      //console.log("value case : " + cases[(((line - 1) * this.nbColonne) + j)].children[0].value + " , value de tableau réponse : " + this.tableauRep[line - 1].charAt(j));
+                      this.nbCaseValide++;
+                      //console.log("Nb lettre ligne valide :" + this.nbCaseValide);
                     }
-                    if (this.ligneValide === 7) {
-                      for (let j = 0; j < this.colonne; j++) {
-                        if (cases[j].children[0].value !== null) {
-                          console.log("change couleur : vrai");
-                          cases[j].children[0].style.backgroundColor = "green";
-                        }
+                    if (this.nbCaseValide === this.nbColonne-1) {
+                      for (let j = 0; j < this.nbColonne; j++) {  
+                        //if (cases[(((line - 1) * this.nbColonne) + j)].children[0].value !== null) { //verif case separateur => a faire
+                          //console.log("change couleur : vrai");
+                          cases[(((line - 1) * this.nbColonne) + j)].children[0].style.backgroundColor = "green";
+                        //}
                       }
+                      this.finDePartie(cases);
                     }
                   }
                 }
               }
             }
 
+
+            //VERIFICATION VERTICAL PAR MOT 
+            //vérifier que la colonne est pleine
+            let nbCaseRempliesV = 0;
+            this.nbCaseValide = 0;
+            for (let n = 0; n < this.nbLigne; n++) {
+              console.log("ligne " + n + " colonne : " + (column-1));
+              console.log("case " + ((n*(this.nbLigne-1)) + (column-1)));
+              if (cases[(n*(this.nbLigne-1)) + (column-1)].children[0].value !== "") {
+                nbCaseRempliesV++;
+                console.log("Nb cases Verticales remplies :" + nbCaseRempliesV);
+                //La colonne est remplie => vérification du/des mot(s)
+                if (nbCaseRempliesV === this.nbLigne) {
+                  for (let j = 0; j < this.nbLigne; j++) {
+                    if (cases[(j*(this.nbLigne-1)) + (column-1)].children[0].value === this.tableauRep[j].charAt(column-1)) {
+                      console.log("value case : " + cases[(j*(this.nbLigne-1)) + (column-1)].children[0].value + " , value de tableau réponse : " + this.tableauRep[line - 1].charAt(j));
+                      this.nbCaseValide++;
+                      console.log("Nb lettre ligne valide :" + this.nbCaseValide);
+                    }
+                    if (this.nbCaseValide === this.nbLigne-1) {
+                      for (let j = 0; j < this.nbLigne; j++) {
+                        if (cases[(j*(this.nbLigne-1)) + (column-1)].children[0].value !== null) {   //verif case separateur => a faire
+                          console.log("change couleur : vrai");
+                          cases[(j*(this.nbLigne-1)) + (column-1)].children[0].style.backgroundColor = "green";
+                        }
+                      }
+                      this.finDePartie(cases);
+                    }
+                  }
+                }
+              }
+            }
             return;
         }
 
@@ -170,17 +194,32 @@ class Grille {
     }
 
     /* else {
-                for (let j = 0; j < this.colonne; j++) {
+                for (let j = 0; j < this.nbColonne; j++) {
                   console.log("change couleur faux ");
                   cases[i].children[0].style.backgroundColor = "red";
                 }*/
 
     // prevent resizing
-    document.body.style.minWidth = 50 * (this.colonne + 1) + 100 + "px";
-    document.body.style.minHeight = 50 * (this.ligne + 1) + 100 + "px";
+    document.body.style.minWidth = 50 * (this.nbColonne + 1) + 100 + "px";
+    document.body.style.minHeight = 50 * (this.nbLigne + 1) + 100 + "px";
   }
 
   writeLegend(def) {
     document.getElementById("definition").innerHTML = def;
   }
+
+  finDePartie(cases){
+    let nbCasesValide = 0;
+    let nbCases = this.nbColonne*this.nbLigne;
+    for(let i = 0; i<nbCases;i++){
+      if (cases[i].children[0].style.backgroundColor === "green"){
+        nbCasesValide++;
+      }
+    }
+    if(nbCasesValide === nbCases){
+      console.log("FIN DE PARTIE");
+    }
+  }
+
+
 }
